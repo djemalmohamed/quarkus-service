@@ -1,5 +1,6 @@
 package com.service.infrastructure.signature.validation.model;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.Map;
  * recalculating or duplicating RFC-specific logic.</p>
  */
 public record SignatureData(
-        String signature,
+        byte[] signature,
         String signatureInput,
         Map<String, String> componentValues
 ) {
@@ -21,14 +22,20 @@ public record SignatureData(
     /**
      * Creates an immutable view of the validated signature material.
      *
-     * @param signature full {@code Signature} header value for the selected label
+     * @param signature full {@code Signature} header value for the selected label, encoded as bytes
      * @param signatureInput full {@code Signature-Input} header value for the selected label
      * @param componentValues covered component identifiers associated with their resolved values
      */
     public SignatureData {
+        signature = null == signature ? null : signature.clone();
         componentValues = null == componentValues
                 ? Map.of()
                 : Collections.unmodifiableMap(new LinkedHashMap<>(componentValues));
+    }
+
+    @Override
+    public byte[] signature() {
+        return null == signature ? null : signature.clone();
     }
 
     /**
@@ -43,7 +50,7 @@ public record SignatureData(
     @Override
     public String toString() {
         return "SignatureData{"
-                + "signature='" + signature + "'"
+                + "signatureLength=" + (null == signature ? 0 : signature.length)
                 + ", signatureInput='" + signatureInput + "'"
                 + ", componentNames=" + componentValues.keySet()
                 + '}';

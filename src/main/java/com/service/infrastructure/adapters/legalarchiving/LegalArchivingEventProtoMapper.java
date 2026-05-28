@@ -8,7 +8,6 @@ import com.service.infrastructure.adapters.legalarchiving.contract.LegalArchivin
 import com.service.infrastructure.adapters.legalarchiving.contract.SignatureDataOuterClass;
 import com.service.infrastructure.adapters.legalarchiving.contract.SignatureParamsOuterClass;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Maps the domain legal-archiving event to the simulated protobuf contract sent by the adapter.
@@ -39,7 +38,7 @@ public class LegalArchivingEventProtoMapper {
             SignatureDataOuterClass.SignatureData.Builder signatureBuilder =
                     SignatureDataOuterClass.SignatureData.newBuilder();
             if (null != event.signature()) {
-                signatureBuilder.setSignature(ByteString.copyFrom(event.signature(), StandardCharsets.UTF_8));
+                signatureBuilder.setSignature(ByteString.copyFrom(event.signature()));
             }
             if (null != event.signatureInput()) {
                 signatureBuilder.setSignatureInput(event.signatureInput());

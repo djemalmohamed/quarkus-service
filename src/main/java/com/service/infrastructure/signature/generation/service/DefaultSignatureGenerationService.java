@@ -19,6 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
@@ -146,7 +147,10 @@ public class DefaultSignatureGenerationService implements SignatureGenerationSer
         return new SignatureGenerationResult(
                 policy.name(),
                 generatedHeaders,
-                new SignatureData(signatureHeader, signatureInputHeader, canonicalizationResult.componentValues())
+                new SignatureData(
+                        signatureHeader.getBytes(StandardCharsets.UTF_8),
+                        signatureInputHeader,
+                        canonicalizationResult.componentValues())
         );
     }
 

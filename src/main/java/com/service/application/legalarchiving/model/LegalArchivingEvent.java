@@ -20,7 +20,7 @@ public record LegalArchivingEvent(
         String direction,
         String phase,
         byte[] payload,
-        String signature,
+        byte[] signature,
         String signatureInput,
         List<SignatureComponent> signatureComponents) {
 
@@ -29,12 +29,18 @@ public record LegalArchivingEvent(
      */
     public LegalArchivingEvent {
         payload = null == payload ? new byte[0] : payload.clone();
+        signature = null == signature ? null : signature.clone();
         signatureComponents = null == signatureComponents ? List.of() : List.copyOf(signatureComponents);
     }
 
     @Override
     public byte[] payload() {
         return payload.clone();
+    }
+
+    @Override
+    public byte[] signature() {
+        return null == signature ? null : signature.clone();
     }
 
     /**
@@ -48,7 +54,7 @@ public record LegalArchivingEvent(
      * @return {@code true} when signature data is present on the archived event
      */
     public boolean hasSignatureData() {
-        return (null != signature && !signature.isBlank())
+        return (null != signature && signature.length > 0)
                 || (null != signatureInput && !signatureInput.isBlank());
     }
 

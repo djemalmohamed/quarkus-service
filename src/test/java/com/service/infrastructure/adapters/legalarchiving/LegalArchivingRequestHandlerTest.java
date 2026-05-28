@@ -83,7 +83,10 @@ class LegalArchivingRequestHandlerTest {
         componentValues.put("request-id", "req-1");
         properties.put(
                 SignatureContextKeys.REQUEST_SIGNATURE_DATA,
-                new SignatureData("sig1=:AQID:", "sig1=(\"@method\" \"request-id\")", componentValues));
+                new SignatureData(
+                        "sig1=:AQID:".getBytes(StandardCharsets.UTF_8),
+                        "sig1=(\"@method\" \"request-id\")",
+                        componentValues));
 
         handler.handle(requestContext, body);
 
