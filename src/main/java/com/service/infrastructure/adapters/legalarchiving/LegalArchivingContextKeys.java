@@ -6,7 +6,7 @@ package com.service.infrastructure.adapters.legalarchiving;
 public final class LegalArchivingContextKeys {
 
     public static final String ARCHIVE_ENABLED = "legal-archive.enabled";
-    public static final String REQUEST_ID = "legal-archive.request-id";
+    public static final String OPERATION_ID = "legal-archive.operation-id";
     public static final String OPERATION = "legal-archive.operation";
 
     /**

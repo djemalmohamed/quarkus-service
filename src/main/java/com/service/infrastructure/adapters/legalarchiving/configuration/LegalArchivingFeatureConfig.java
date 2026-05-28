@@ -34,7 +34,6 @@ public interface LegalArchivingFeatureConfig {
     /**
      * @return the Kafka topic used for legal archiving
      */
-    @WithDefault("desp-agc-legal-archive")
     String topic();
 
     /**

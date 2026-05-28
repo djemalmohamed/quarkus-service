@@ -1,6 +1,7 @@
 package com.service.application.legalarchiving;
 
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
+import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.port.out.LegalArchivingPort;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,7 +12,7 @@ import lombok.RequiredArgsConstructor;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-public class LegalArchivingService implements LegalArchivingUseCase {
+public class LegalArchivingService implements LegalArchivingInPort {
 
     private final LegalArchivingPort legalArchivingPort;
 

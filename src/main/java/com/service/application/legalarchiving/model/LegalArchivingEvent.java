@@ -3,33 +3,33 @@ package com.service.application.legalarchiving.model;
 import java.util.List;
 
 /**
- * Application representation of the legal-archiving message plus the technical context needed to emit it.
+ * Application representation of one legal-archiving message.
  *
- * @param requestId the correlation identifier of the archived HTTP interaction
- * @param operation the business operation name associated with the exchange
- * @param direction whether the exchange is inbound or outbound
- * @param phase whether the event represents a request or a response
- * @param payload the archived HTTP body bytes
- * @param signature the raw {@code Signature} header value when present
- * @param signatureInput the raw {@code Signature-Input} header value when present
- * @param signatureParameters the resolved covered components from {@code Signature-Input}
+ * @param eventId the identifier of the archived event
+ * @param operation the business operation associated with the event
+ * @param direction whether the event is inbound or outbound
+ * @param phase whether the event represents an input or an output phase
+ * @param payload the message payload bytes to archive
+ * @param signature the signature field value when present
+ * @param signatureInput the signature-input field value when present
+ * @param signatureComponents the resolved signature components associated with the event
  */
 public record LegalArchivingEvent(
-        String requestId,
+        String eventId,
         String operation,
         String direction,
         String phase,
         byte[] payload,
         String signature,
         String signatureInput,
-        List<SignatureParameter> signatureParameters) {
+        List<SignatureComponent> signatureComponents) {
 
     /**
      * Creates an immutable application event ready to be archived.
      */
     public LegalArchivingEvent {
         payload = null == payload ? new byte[0] : payload.clone();
-        signatureParameters = null == signatureParameters ? List.of() : List.copyOf(signatureParameters);
+        signatureComponents = null == signatureComponents ? List.of() : List.copyOf(signatureComponents);
     }
 
     @Override
@@ -45,7 +45,7 @@ public record LegalArchivingEvent(
     }
 
     /**
-     * @return {@code true} when signature data is present on the archived HTTP interaction
+     * @return {@code true} when signature data is present on the archived event
      */
     public boolean hasSignatureData() {
         return (null != signature && !signature.isBlank())
@@ -53,11 +53,11 @@ public record LegalArchivingEvent(
     }
 
     /**
-     * Name/value representation of a covered HTTP signature component.
+     * Name/value representation of one resolved signature component.
      *
-     * @param key the component identifier, for example {@code content-digest} or {@code @method}
+     * @param key the component identifier
      * @param value the resolved value of that component
      */
-    public record SignatureParameter(String key, String value) {
+    public record SignatureComponent(String key, String value) {
     }
 }

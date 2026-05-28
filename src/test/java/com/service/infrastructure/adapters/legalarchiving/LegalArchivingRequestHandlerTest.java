@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.service.application.legalarchiving.LegalArchivingUseCase;
+import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
 import com.service.application.legalarchiving.policy.LegalArchivingPolicy;
 import com.service.infrastructure.adapters.legalarchiving.ArchivePayloadSerializer;
@@ -41,7 +41,7 @@ class LegalArchivingRequestHandlerTest {
     private LegalArchivingPolicy legalArchivingPolicy;
 
     @Mock
-    private LegalArchivingUseCase legalArchivingUseCase;
+    private LegalArchivingInPort legalArchivingUseCase;
 
     @Mock
     private ContainerRequestContext requestContext;
@@ -91,14 +91,14 @@ class LegalArchivingRequestHandlerTest {
         verify(legalArchivingUseCase).archive(eventCaptor.capture());
 
         LegalArchivingEvent event = eventCaptor.getValue();
-        assertEquals("req-1", event.requestId());
+        assertEquals("req-1", event.eventId());
         assertEquals("POST /v1/fundings", event.operation());
         assertEquals("INBOUND", event.direction());
         assertEquals("REQUEST", event.phase());
         assertArrayEquals(body, event.payload());
-        assertEquals(2, event.signatureParameters().size());
+        assertEquals(2, event.signatureComponents().size());
         assertEquals(Boolean.TRUE, properties.get(LegalArchivingContextKeys.ARCHIVE_ENABLED));
-        assertEquals("req-1", properties.get(LegalArchivingContextKeys.REQUEST_ID));
+        assertEquals("req-1", properties.get(LegalArchivingContextKeys.OPERATION_ID));
         assertEquals("POST /v1/fundings", properties.get(LegalArchivingContextKeys.OPERATION));
     }
 
@@ -113,7 +113,7 @@ class LegalArchivingRequestHandlerTest {
         ArgumentCaptor<LegalArchivingEvent> eventCaptor = ArgumentCaptor.forClass(LegalArchivingEvent.class);
         verify(legalArchivingUseCase).archive(eventCaptor.capture());
 
-        assertNotNull(eventCaptor.getValue().requestId());
+        assertNotNull(eventCaptor.getValue().eventId());
         assertEquals(0, eventCaptor.getValue().payload().length);
         assertFalse(eventCaptor.getValue().hasPayload());
     }

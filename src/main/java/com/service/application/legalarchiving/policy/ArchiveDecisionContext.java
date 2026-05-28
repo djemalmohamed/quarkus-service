@@ -1,12 +1,12 @@
 package com.service.application.legalarchiving.policy;
 
 /**
- * Application-level description of an HTTP interaction that may be subject to legal archiving.
+ * Application-level description of an interaction that may be subject to legal archiving.
  *
  * @param direction the interaction direction relative to the current service
- * @param method the HTTP method
- * @param path the request path
- * @param host the target host when the interaction is outbound
+ * @param method the interaction method
+ * @param path the logical resource path
+ * @param host the remote host when the interaction is outbound
  */
 public record ArchiveDecisionContext(
         Direction direction,
@@ -15,10 +15,10 @@ public record ArchiveDecisionContext(
         String host) {
 
     /**
-     * Creates an inbound decision context from request metadata already extracted by infrastructure.
+     * Creates an inbound decision context from metadata already extracted by infrastructure.
      *
-     * @param method the inbound HTTP method
-     * @param path the inbound request path
+     * @param method the inbound interaction method
+     * @param path the inbound interaction path
      * @return the corresponding application decision context
      */
     public static ArchiveDecisionContext inbound(String method, String path) {
@@ -28,7 +28,7 @@ public record ArchiveDecisionContext(
     /**
      * Creates an outbound decision context from target metadata already extracted by infrastructure.
      *
-     * @param method the outbound HTTP method
+     * @param method the outbound interaction method
      * @param host the outbound target host
      * @param path the outbound target path
      * @return the corresponding application decision context

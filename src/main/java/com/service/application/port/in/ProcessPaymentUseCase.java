@@ -14,10 +14,10 @@ import com.service.domain.payment.PaymentResult;
 public interface ProcessPaymentUseCase {
 
     /**
-     * Processes a payment request received by the gateway.
+     * Processes a payment order handled by the service.
      *
      * @param payment immutable domain representation of the payment to process
-     * @return the business result produced by the gateway after provider interaction
+     * @return the business result produced after downstream processing
      */
     PaymentResult process(Payment payment);
 }

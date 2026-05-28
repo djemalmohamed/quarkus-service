@@ -1,7 +1,7 @@
 package com.service.infrastructure.adapters.legalarchiving;
 
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
-import com.service.application.legalarchiving.model.LegalArchivingEvent.SignatureParameter;
+import com.service.application.legalarchiving.model.LegalArchivingEvent.SignatureComponent;
 import com.service.infrastructure.signature.validation.model.SignatureData;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
@@ -25,21 +25,21 @@ public class LegalArchivingEventMapper {
      * @return the application event ready for the legal-archiving use case
      */
     public LegalArchivingEvent toEvent(
-            String requestId,
+            String eventId,
             String operation,
             String direction,
             String phase,
             byte[] payload,
             SignatureData signatureData) {
         return new LegalArchivingEvent(
-                requestId,
+                eventId,
                 operation,
                 direction,
                 phase,
                 payload,
                 null == signatureData ? null : signatureData.signature(),
                 null == signatureData ? null : signatureData.signatureInput(),
-                toSignatureParameters(signatureData));
+                toSignatureComponents(signatureData));
     }
 
     /**
@@ -48,12 +48,12 @@ public class LegalArchivingEventMapper {
      * @param signatureData the already prepared signature data
      * @return the signature parameters ready for archiving
      */
-    private List<SignatureParameter> toSignatureParameters(SignatureData signatureData) {
+    private List<SignatureComponent> toSignatureComponents(SignatureData signatureData) {
         if (null == signatureData) {
             return List.of();
         }
         return signatureData.componentValues().entrySet().stream()
-                .map(this::toSignatureParameter)
+                .map(this::toSignatureComponent)
                 .toList();
     }
 
@@ -63,7 +63,7 @@ public class LegalArchivingEventMapper {
      * @param entry the prepared signature component entry
      * @return the application signature parameter
      */
-    private SignatureParameter toSignatureParameter(Map.Entry<String, String> entry) {
-        return new SignatureParameter(entry.getKey(), entry.getValue());
+    private SignatureComponent toSignatureComponent(Map.Entry<String, String> entry) {
+        return new SignatureComponent(entry.getKey(), entry.getValue());
     }
 }

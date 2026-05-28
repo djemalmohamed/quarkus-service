@@ -1,6 +1,6 @@
 package com.service.infrastructure.adapters.http;
 
-import com.service.application.legalarchiving.LegalArchivingUseCase;
+import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.legalarchiving.policy.ArchiveDecisionContext;
 import com.service.application.legalarchiving.policy.LegalArchivingPolicy;
 import com.service.infrastructure.adapters.legalarchiving.LegalArchivingEventMapper;
@@ -24,7 +24,7 @@ public class HttpOutputLegalArchivingSupport {
 
     private final LegalArchivingPolicy legalArchivingPolicy;
     private final LegalArchivingEventMapper legalArchivingEventMapper;
-    private final LegalArchivingUseCase legalArchivingUseCase;
+    private final LegalArchivingInPort legalArchivingInPort;
 
     /**
      * Archives one outbound request when the configured legal-archiving policy applies.
@@ -84,12 +84,12 @@ public class HttpOutputLegalArchivingSupport {
             return;
         }
 
-        String requestId = resolveRequestId(headers);
+        String eventId = resolveRequestId(headers);
         String operation = legalArchivingPolicy.resolveOperation(context);
         byte[] payload = body == null || body.isEmpty() ? null : body.getBytes(StandardCharsets.UTF_8);
 
-        legalArchivingUseCase.archive(legalArchivingEventMapper.toEvent(
-                        requestId,
+        legalArchivingInPort.archive(legalArchivingEventMapper.toEvent(
+                        eventId,
                         operation,
                         "OUTBOUND",
                         phase,
@@ -99,24 +99,24 @@ public class HttpOutputLegalArchivingSupport {
                 .with(
                         this::ignoreArchiveSuccess,
                         error -> log.error(
-                                "Outbound legal archiving failed requestId={} operation={} phase={}",
-                                requestId,
+                                "Outbound legal archiving failed eventId={} operation={} phase={}",
+                                eventId,
                                 operation,
                                 phase,
                                 error));
     }
 
     /**
-     * Resolves the request identifier from outbound headers, generating one when missing.
+     * Resolves the event identifier from outbound headers, generating one when missing.
      *
      * @param headers outbound request headers
-     * @return propagated or generated request identifier
+     * @return propagated or generated event identifier
      */
     private String resolveRequestId(Map<String, String> headers) {
         if (null != headers) {
-            String requestId = firstHeaderValue(headers, SignatureConstants.HEADER_REQUEST_ID);
-            if (null != requestId && !requestId.isBlank()) {
-                return requestId;
+            String eventId = firstHeaderValue(headers, SignatureConstants.HEADER_REQUEST_ID);
+            if (null != eventId && !eventId.isBlank()) {
+                return eventId;
             }
         }
         return UUID.randomUUID().toString();

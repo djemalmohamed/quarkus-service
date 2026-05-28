@@ -12,7 +12,7 @@ public interface LegalArchivingPort {
      * Archives the supplied legal message through the configured outbound adapter.
      *
      * @param event the archive event to emit
-     * @return a reactive completion signal for the archival request
+     * @return a reactive completion signal for the archival action
      */
     Uni<Void> archive(LegalArchivingEvent event);
 }

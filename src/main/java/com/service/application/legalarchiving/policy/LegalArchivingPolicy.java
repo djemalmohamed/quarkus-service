@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Application policy responsible for deciding whether an HTTP interaction must be archived.
+ * Application policy responsible for deciding whether an interaction must be archived.
  */
 public class LegalArchivingPolicy {
 
@@ -77,9 +77,9 @@ public class LegalArchivingPolicy {
     }
 
     /**
-     * Normalizes an HTTP method to the uppercase comparison form used by the application policy.
+     * Normalizes an interaction method to the uppercase comparison form used by the application policy.
      *
-     * @param method the raw HTTP method
+     * @param method the raw interaction method
      * @return the normalized method
      */
     private String normalizeMethod(String method) {
@@ -110,7 +110,7 @@ public class LegalArchivingPolicy {
     }
 
     /**
-     * Rule set used by the application layer for one HTTP direction.
+     * Rule set used by the application layer for one interaction direction.
      *
      * @param enabled whether this direction is eligible for legal archiving
      * @param methodRules method-specific legal-archiving rules
@@ -152,7 +152,7 @@ public class LegalArchivingPolicy {
         }
 
         /**
-         * @return {@code true} when the configured method archives requests by default
+         * @return {@code true} when the configured method archives events by default
          */
         public boolean archivesByDefault() {
             return decision == MethodDecision.ARCHIVE;
@@ -160,7 +160,7 @@ public class LegalArchivingPolicy {
     }
 
     /**
-     * Base decision applied to one configured HTTP method.
+     * Base decision applied to one configured interaction method.
      */
     public enum MethodDecision {
         ARCHIVE,

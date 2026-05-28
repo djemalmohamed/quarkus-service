@@ -7,8 +7,8 @@ import com.service.domain.payment.PaymentResult;
  * Outbound application port used by the application layer to communicate with
  * an external payment provider.
  *
- * <p>The interface deliberately hides transport details such as HTTP, signatures,
- * headers or TLS from the application service. Concrete implementations belong
+ * <p>The interface deliberately hides delivery and integration details from the
+ * application service. Concrete implementations belong
  * to the infrastructure layer.</p>
  */
 public interface PaymentOutputAdapter {

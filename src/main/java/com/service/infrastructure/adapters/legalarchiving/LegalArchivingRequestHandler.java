@@ -1,6 +1,6 @@
 package com.service.infrastructure.adapters.legalarchiving;
 
-import com.service.application.legalarchiving.LegalArchivingUseCase;
+import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
 import com.service.application.legalarchiving.policy.ArchiveDecisionContext;
 import com.service.application.legalarchiving.policy.LegalArchivingPolicy;
@@ -38,7 +38,7 @@ public class LegalArchivingRequestHandler {
     private final LegalArchivingPolicy legalArchivingPolicy;
     private final ArchivePayloadSerializer payloadSerializer;
     private final LegalArchivingEventMapper eventMapper;
-    private final LegalArchivingUseCase legalArchivingUseCase;
+    private final LegalArchivingInPort legalArchivingInPort;
 
     /**
      * Archives one inbound HTTP request when the legal-archiving policy enables it.
@@ -63,22 +63,22 @@ public class LegalArchivingRequestHandler {
             return;
         }
 
-        String requestId = resolveRequestId(requestContext);
+        String operationId = resolveOperationId(requestContext);
         String operation = legalArchivingPolicy.resolveOperation(decisionContext);
         requestContext.setProperty(LegalArchivingContextKeys.ARCHIVE_ENABLED, Boolean.TRUE);
-        requestContext.setProperty(LegalArchivingContextKeys.REQUEST_ID, requestId);
+        requestContext.setProperty(LegalArchivingContextKeys.OPERATION_ID, operationId);
         requestContext.setProperty(LegalArchivingContextKeys.OPERATION, operation);
 
         archiveAsync(
                 eventMapper.toEvent(
-                        requestId,
+                        operationId,
                         operation,
                         "INBOUND",
                         "REQUEST",
                         payloadSerializer.serialize(requestBody),
                         (SignatureData) requestContext.getProperty(
                                 SignatureContextKeys.REQUEST_SIGNATURE_DATA)),
-                requestId,
+                operationId,
                 operation);
     }
 
@@ -89,35 +89,35 @@ public class LegalArchivingRequestHandler {
      * delegate to the use case and log failures without slowing down the inbound request chain.</p>
      *
      * @param event the event ready for the legal-archiving use case
-     * @param requestId the current request identifier
+     * @param operationId the current operation identifier
      * @param operation the logical operation derived from the request
      */
     private void archiveAsync(
             LegalArchivingEvent event,
-            String requestId,
+            String operationId,
             String operation) {
-        legalArchivingUseCase.archive(event)
+        legalArchivingInPort.archive(event)
                 .subscribe()
                 .with(
                         this::ignoreArchiveSuccess,
                         error -> log.error(
-                                "Inbound legal archiving failed requestId={} operation={} phase={}",
-                                requestId,
+                                "Inbound legal archiving failed operationId={} operation={} phase={}",
+                                operationId,
                                 operation,
                                 "REQUEST",
                                 error));
     }
 
     /**
-     * Resolves the request identifier from the incoming HTTP headers, generating one when absent.
+     * Resolves the operation identifier from the incoming transport headers, generating one when absent.
      *
      * @param requestContext the current inbound request context
-     * @return the propagated or generated request identifier
+     * @return the propagated or generated operation identifier
      */
-    private String resolveRequestId(ContainerRequestContext requestContext) {
-        String requestId = requestContext.getHeaderString(REQUEST_ID_HEADER);
-        if (null != requestId && !requestId.isBlank()) {
-            return requestId;
+    private String resolveOperationId(ContainerRequestContext requestContext) {
+        String operationId = requestContext.getHeaderString(REQUEST_ID_HEADER);
+        if (null != operationId && !operationId.isBlank()) {
+            return operationId;
         }
         return UUID.randomUUID().toString();
     }

@@ -46,28 +46,28 @@ public class LegalArchivingAdapter implements LegalArchivingPort {
             return Uni.createFrom().voidItem();
         }
 
-        String requestId = null == event.requestId() ? "unknown-request" : event.requestId();
+        String eventId = null == event.eventId() ? "unknown-event" : event.eventId();
         String operation = null == event.operation() ? "unknown-operation" : event.operation();
         String phase = null == event.phase() ? "unknown-phase" : event.phase();
         String direction = null == event.direction() ? "unknown-direction" : event.direction();
 
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(
                 configuration.topic(),
-                requestId,
+                eventId,
                 protoMapper.toProto(event).toByteArray());
 
         return sendReactive(record)
                 .invoke(metadata -> log.info(
-                        "Legal archive emitted topic={} partition={} offset={} requestId={} operation={} phase={}",
+                        "Legal archive emitted topic={} partition={} offset={} eventId={} operation={} phase={}",
                         metadata.topic(),
                         metadata.partition(),
                         metadata.offset(),
-                        requestId,
+                        eventId,
                         operation,
                         phase))
                 .onFailure().invoke(exception -> log.error(
-                        "Legal archive emission failed requestId={} phase={} direction={}",
-                        requestId,
+                        "Legal archive emission failed eventId={} phase={} direction={}",
+                        eventId,
                         phase,
                         direction,
                         exception))

@@ -47,10 +47,10 @@ public class LegalArchivingEventProtoMapper {
             builder.setLeaSignatureData(signatureBuilder.build());
         }
 
-        if (!event.signatureParameters().isEmpty()) {
+        if (!event.signatureComponents().isEmpty()) {
             SignatureParamsOuterClass.SignatureParams.Builder paramsBuilder =
                     SignatureParamsOuterClass.SignatureParams.newBuilder();
-            for (LegalArchivingEvent.SignatureParameter parameter : event.signatureParameters()) {
+            for (LegalArchivingEvent.SignatureComponent parameter : event.signatureComponents()) {
                 paramsBuilder.addSignatureParameter(SignatureParamsOuterClass.SignatureParams.SignatureParam.newBuilder()
                         .setSignatureParamKey(parameter.key())
                         .setSignatureParamValue(parameter.value())
