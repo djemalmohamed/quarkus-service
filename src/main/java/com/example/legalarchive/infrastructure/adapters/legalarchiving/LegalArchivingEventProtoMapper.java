@@ -1,0 +1,63 @@
+package com.example.legalarchive.infrastructure.adapters.legalarchiving;
+
+import com.example.legalarchive.application.model.LegalArchivingEvent;
+import com.google.protobuf.ByteString;
+import eu.ecb.desp.protobuf.legal_archiving.LegalArchivingAdditionalDataOuterClass;
+import eu.ecb.desp.protobuf.legal_archiving.LegalArchivingDataOuterClass;
+import eu.ecb.desp.protobuf.legal_archiving.LegalArchivingRequestOuterClass;
+import eu.ecb.desp.protobuf.legal_archiving.SignatureDataOuterClass;
+import eu.ecb.desp.protobuf.legal_archiving.SignatureParamsOuterClass;
+import jakarta.enterprise.context.ApplicationScoped;
+
+/**
+ * Maps the domain legal-archiving event to the simulated protobuf contract sent by the adapter.
+ */
+@ApplicationScoped
+public class LegalArchivingEventProtoMapper {
+
+    /**
+     * Converts the supplied domain event to the simulated protobuf contract.
+     *
+     * @param event the domain event to convert
+     * @return the protobuf-shaped message expected by the transport adapter
+     */
+    public LegalArchivingRequestOuterClass.LegalArchivingRequest toProto(LegalArchivingEvent event) {
+        LegalArchivingRequestOuterClass.LegalArchivingRequest.Builder builder =
+                LegalArchivingRequestOuterClass.LegalArchivingRequest.newBuilder()
+                        .setLeaAdditionalData(LegalArchivingAdditionalDataOuterClass.LegalArchivingAdditionalData
+                                .newBuilder()
+                                .build());
+
+        if (event.hasPayload()) {
+            builder.setLegalCoreData(LegalArchivingDataOuterClass.LegalArchivingData.newBuilder()
+                    .setPayload(ByteString.copyFrom(event.payload()))
+                    .build());
+        }
+
+        if (event.hasSignatureData()) {
+            SignatureDataOuterClass.SignatureData.Builder signatureBuilder =
+                    SignatureDataOuterClass.SignatureData.newBuilder();
+            if (null != event.signature()) {
+                signatureBuilder.setSignature(ByteString.copyFrom(event.signature()));
+            }
+            if (null != event.signatureInput()) {
+                signatureBuilder.setSignatureInput(event.signatureInput());
+            }
+            builder.setLeaSignatureData(signatureBuilder.build());
+        }
+
+        if (!event.signatureParameters().isEmpty()) {
+            SignatureParamsOuterClass.SignatureParams.Builder paramsBuilder =
+                    SignatureParamsOuterClass.SignatureParams.newBuilder();
+            for (LegalArchivingEvent.SignatureParameter parameter : event.signatureParameters()) {
+                paramsBuilder.addSignatureParameter(SignatureParamsOuterClass.SignatureParams.SignatureParam.newBuilder()
+                        .setSignatureParamKey(parameter.key())
+                        .setSignatureParamValue(parameter.value())
+                        .build());
+            }
+            builder.setSignatureParams(paramsBuilder.build());
+        }
+
+        return builder.build();
+    }
+}
