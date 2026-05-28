@@ -175,6 +175,7 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
         }
 
         try {
+            captureSignatureHeaders(context, message);
             context.signatureInput = signatureInputParser.parseSignatureInput(message.headers());
             context.signature = signatureInputParser.parseSignature(message.headers(), context.signatureInput.label());
             context.algorithm = SignatureConstants.normalize(context.signatureInput.algorithm());
@@ -332,12 +333,7 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
         }
         try {
             CanonicalizationResult canonicalizationResult = canonicalizationService.buildSignatureBase(signatureContext, context.signatureInput);
-            IncomingHttpMessage message = requireIncomingMessage(signatureContext);
-            context.signatureData = new SignatureData(
-                    HeaderUtils.firstHeader(message.headers(), SignatureConstants.HEADER_SIGNATURE),
-                    HeaderUtils.firstHeader(message.headers(), SignatureConstants.HEADER_SIGNATURE_INPUT),
-                    canonicalizationResult.componentValues()
-            );
+            context.componentValues = canonicalizationResult.componentValues();
             if (!hasResolvedKeyMaterial(context)) {
                 return;
             }
@@ -402,6 +398,7 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
      * @return final validation report
      */
     private ValidationReport toReport(ValidationContext context) {
+        SignatureData signatureData = toSignatureData(context);
         if (!context.issues.isEmpty()) {
             return ValidationReport.ko(
                     context.policy.name(),
@@ -409,7 +406,7 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
                     context.signatureInput == null ? null : context.signatureInput.keyId(),
                     context.signerDn,
                     context.algorithm,
-                    context.signatureData,
+                    signatureData,
                     context.issues,
                     context.details
             );
@@ -420,9 +417,58 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
                 context.signatureInput == null ? null : context.signatureInput.keyId(),
                 context.signerDn,
                 context.algorithm,
-                context.signatureData,
+                signatureData,
                 context.details
         );
+    }
+
+    /**
+     * Captures the raw signature transport headers before any later validation step depends on them.
+     *
+     * @param context mutable validation context
+     * @param message inbound HTTP message
+     */
+    private void captureSignatureHeaders(ValidationContext context, IncomingHttpMessage message) {
+        putIfPresent(
+                context.signatureHeaders,
+                SignatureConstants.HEADER_SIGNATURE,
+                HeaderUtils.firstHeader(message.headers(), SignatureConstants.HEADER_SIGNATURE)
+        );
+        putIfPresent(
+                context.signatureHeaders,
+                SignatureConstants.HEADER_SIGNATURE_INPUT,
+                HeaderUtils.firstHeader(message.headers(), SignatureConstants.HEADER_SIGNATURE_INPUT)
+        );
+    }
+
+    /**
+     * Builds the immutable signature data view exposed in the final validation report.
+     *
+     * @param context mutable validation context
+     * @return immutable signature data, or {@code null} when no signature transport data exists
+     */
+    private SignatureData toSignatureData(ValidationContext context) {
+        if (context.signatureHeaders.isEmpty() && context.componentValues.isEmpty()) {
+            return null;
+        }
+        return new SignatureData(
+                context.signatureHeaders.get(SignatureConstants.HEADER_SIGNATURE),
+                context.signatureHeaders.get(SignatureConstants.HEADER_SIGNATURE_INPUT),
+                context.componentValues
+        );
+    }
+
+    /**
+     * Stores one header value only when it is actually present.
+     *
+     * @param target target mutable header map
+     * @param name header name
+     * @param value first resolved header value
+     */
+    private void putIfPresent(Map<String, String> target, String name, String value) {
+        if (null != value && !value.isBlank()) {
+            target.put(name, value);
+        }
     }
 
     /**
@@ -695,10 +741,11 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
         private final ValidationMode mode;
         private final List<ValidationIssue> issues = new ArrayList<>();
         private final Map<String, Object> details = new LinkedHashMap<>();
+        private final Map<String, String> signatureHeaders = new LinkedHashMap<>();
         private boolean continueChecks = true;
         private ParsedSignatureInput signatureInput;
         private ParsedSignature signature;
-        private SignatureData signatureData;
+        private Map<String, String> componentValues = Map.of();
         private String algorithm;
         private String signerDn;
         private ResolvedKeyMaterial keyMaterial;
