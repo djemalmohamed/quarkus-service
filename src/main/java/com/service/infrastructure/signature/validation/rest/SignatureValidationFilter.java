@@ -88,7 +88,6 @@ public class SignatureValidationFilter {
         );
 
         ValidationReport report = signatureValidationEngine.validate(message, policy.get());
-        requestContext.setProperty(SignatureValidationRequestContextKeys.VALIDATION_REPORT, report);
         if (null != report.signatureData()) {
             requestContext.setProperty(SignatureContextKeys.REQUEST_SIGNATURE_DATA, report.signatureData());
         }

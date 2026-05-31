@@ -158,8 +158,6 @@ class SignatureValidationFilterTest {
         Response response = filter.filter(requestContext.context());
 
         assertNull(response);
-        ValidationReport report = (ValidationReport) requestContext.context().getProperty(SignatureValidationRequestContextKeys.VALIDATION_REPORT);
-        assertEquals("psp1", report.keyId());
         assertArrayEquals(body, validatedMessage.get().body());
         assertEquals("req-1", validatedMessage.get().firstHeader("request-id"));
         assertArrayEquals(body, requestContext.currentBody());
