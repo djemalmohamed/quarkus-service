@@ -33,6 +33,9 @@ public record SignatureData(
                 : Collections.unmodifiableMap(new LinkedHashMap<>(componentValues));
     }
 
+    /**
+     * Returns a defensive copy of the signature bytes.
+     */
     @Override
     public byte[] signature() {
         return null == signature ? null : signature.clone();
