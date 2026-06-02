@@ -3,6 +3,8 @@ package com.service.infrastructure.signature.rfc;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Result of one HTTP Message Signatures canonicalization pass.
@@ -58,5 +60,30 @@ public record CanonicalizationResult(
     @Override
     public Map<String, String> componentValues() {
         return componentValues;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof CanonicalizationResult that)) {
+            return false;
+        }
+        return Arrays.equals(signatureBase, that.signatureBase)
+                && Objects.equals(componentValues, that.componentValues);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * Objects.hash(componentValues) + Arrays.hashCode(signatureBase);
+    }
+
+    @Override
+    public String toString() {
+        return "CanonicalizationResult{"
+                + "signatureBaseLength=" + signatureBase.length
+                + ", componentNames=" + componentValues.keySet()
+                + '}';
     }
 }

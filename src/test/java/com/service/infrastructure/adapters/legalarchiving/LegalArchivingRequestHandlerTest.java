@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
 import com.service.application.legalarchiving.policy.LegalArchivingPolicy;
-import com.service.infrastructure.adapters.legalarchiving.ArchivePayloadSerializer;
 import com.service.infrastructure.signature.SignatureContextKeys;
 import com.service.infrastructure.signature.validation.model.SignatureData;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +55,7 @@ class LegalArchivingRequestHandlerTest {
     void setUp() {
         handler = new LegalArchivingRequestHandler(
                 legalArchivingPolicy,
-                new ArchivePayloadSerializer(new ObjectMapper()),
+                new ObjectSerializer(new ObjectMapper()),
                 new LegalArchivingEventMapper(),
                 legalArchivingUseCase);
 

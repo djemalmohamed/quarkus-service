@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Signature data prepared by the validation process for downstream archiving needs.
@@ -48,6 +49,24 @@ public record SignatureData(
      */
     public SignatureData copy() {
         return new SignatureData(signature, signatureInput, componentValues);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof SignatureData that)) {
+            return false;
+        }
+        return Arrays.equals(signature, that.signature)
+                && Objects.equals(signatureInput, that.signatureInput)
+                && Objects.equals(componentValues, that.componentValues);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * Objects.hash(signatureInput, componentValues) + Arrays.hashCode(signature);
     }
 
     @Override

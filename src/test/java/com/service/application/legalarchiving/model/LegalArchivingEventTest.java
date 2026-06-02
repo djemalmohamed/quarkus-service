@@ -9,6 +9,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,5 +78,45 @@ class LegalArchivingEventTest {
         assertNotSame(firstPayload, secondPayload);
         assertArrayEquals("payload".getBytes(StandardCharsets.UTF_8), secondPayload);
         assertEquals(List.of(), emptyEvent.signatureComponents());
+    }
+
+    @Test
+    void shouldImplementValueSemanticsForArraysAndToString() {
+        LegalArchivingEvent left = new LegalArchivingEvent(
+                "event-1",
+                "POST /v1/payments",
+                "INBOUND",
+                "REQUEST",
+                "payload".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=(\"@method\")",
+                List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
+        );
+        LegalArchivingEvent right = new LegalArchivingEvent(
+                "event-1",
+                "POST /v1/payments",
+                "INBOUND",
+                "REQUEST",
+                "payload".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=(\"@method\")",
+                List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
+        );
+        LegalArchivingEvent different = new LegalArchivingEvent(
+                "event-2",
+                "POST /v1/payments",
+                "INBOUND",
+                "REQUEST",
+                "payload".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=(\"@method\")",
+                List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
+        );
+
+        assertEquals(left, right);
+        assertEquals(left.hashCode(), right.hashCode());
+        assertNotEquals(left, different);
+        assertTrue(left.toString().contains("eventId='event-1'"));
+        assertTrue(left.toString().contains("payloadLength=7"));
     }
 }

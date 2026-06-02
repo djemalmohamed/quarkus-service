@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-public class ArchivePayloadSerializer {
+public class ObjectSerializer {
 
     private final ObjectMapper objectMapper;
 

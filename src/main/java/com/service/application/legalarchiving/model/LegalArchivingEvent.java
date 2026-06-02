@@ -1,6 +1,8 @@
 package com.service.application.legalarchiving.model;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Application representation of one legal-archiving message.
@@ -56,6 +58,46 @@ public record LegalArchivingEvent(
     public boolean hasSignatureData() {
         return (null != signature && signature.length > 0)
                 || (null != signatureInput && !signatureInput.isBlank());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof LegalArchivingEvent that)) {
+            return false;
+        }
+        return Objects.equals(eventId, that.eventId)
+                && Objects.equals(operation, that.operation)
+                && Objects.equals(direction, that.direction)
+                && Objects.equals(phase, that.phase)
+                && Arrays.equals(payload, that.payload)
+                && Arrays.equals(signature, that.signature)
+                && Objects.equals(signatureInput, that.signatureInput)
+                && Objects.equals(signatureComponents, that.signatureComponents);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(eventId, operation, direction, phase, signatureInput, signatureComponents);
+        result = 31 * result + Arrays.hashCode(payload);
+        result = 31 * result + Arrays.hashCode(signature);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "LegalArchivingEvent{"
+                + "eventId='" + eventId + '\''
+                + ", operation='" + operation + '\''
+                + ", direction='" + direction + '\''
+                + ", phase='" + phase + '\''
+                + ", payloadLength=" + payload.length
+                + ", signatureLength=" + (null == signature ? 0 : signature.length)
+                + ", signatureInput='" + signatureInput + '\''
+                + ", signatureComponents=" + signatureComponents
+                + '}';
     }
 
     /**

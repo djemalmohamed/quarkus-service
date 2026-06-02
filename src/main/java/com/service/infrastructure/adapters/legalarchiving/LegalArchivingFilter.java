@@ -25,7 +25,7 @@ public class LegalArchivingFilter {
     private static final String REQUEST_ID_HEADER = "Request-Id";
     private static final int LEGAL_ARCHIVING_PRIORITY = 5020;
 
-    private final ArchivePayloadSerializer payloadSerializer;
+    private final ObjectSerializer payloadSerializer;
     private final LegalArchivingEventMapper eventMapper;
     private final LegalArchivingInPort legalArchivingInPort;
 

@@ -20,10 +20,13 @@ import org.mockito.quality.Strictness;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -48,7 +51,7 @@ class LegalArchivingFilterTest {
     @BeforeEach
     void setUp() {
         filter = new LegalArchivingFilter(
-                new ArchivePayloadSerializer(new ObjectMapper()),
+                new ObjectSerializer(new ObjectMapper()),
                 new LegalArchivingEventMapper(),
                 legalArchivingInPort
         );
@@ -104,5 +107,40 @@ class LegalArchivingFilterTest {
 
         assertDoesNotThrow(() -> filter.filter(requestContext, responseContext));
         assertEquals("existing-request-id", headers.getFirst("Request-Id"));
+    }
+
+    @Test
+    void shouldNotInjectRequestIdHeaderWhenOperationIdIsMissing() {
+        properties.put(LegalArchivingContextKeys.ARCHIVE_ENABLED, Boolean.TRUE);
+        properties.put(LegalArchivingContextKeys.OPERATION, "POST /v1/payments");
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        when(responseContext.getHeaders()).thenReturn(headers);
+        when(responseContext.getEntity()).thenReturn(null);
+
+        filter.filter(requestContext, responseContext);
+
+        verify(legalArchivingInPort).archive(any());
+        assertNull(headers.getFirst("Request-Id"));
+    }
+
+    @Test
+    void shouldArchiveResponseWithoutSignatureData() {
+        properties.put(LegalArchivingContextKeys.ARCHIVE_ENABLED, Boolean.TRUE);
+        properties.put(LegalArchivingContextKeys.OPERATION_ID, "req-2");
+        properties.put(LegalArchivingContextKeys.OPERATION, "POST /v1/payments");
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        when(responseContext.getHeaders()).thenReturn(headers);
+        when(responseContext.getEntity()).thenReturn(new byte[]{1, 2, 3});
+
+        filter.filter(requestContext, responseContext);
+
+        ArgumentCaptor<LegalArchivingEvent> eventCaptor = ArgumentCaptor.forClass(LegalArchivingEvent.class);
+        verify(legalArchivingInPort).archive(eventCaptor.capture());
+
+        LegalArchivingEvent event = eventCaptor.getValue();
+        assertEquals(List.of(), event.signatureComponents());
+        assertFalse(event.hasSignatureData());
     }
 }

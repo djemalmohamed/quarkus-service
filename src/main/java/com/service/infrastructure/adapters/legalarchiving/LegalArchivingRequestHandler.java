@@ -4,7 +4,6 @@ import com.service.application.port.in.LegalArchivingInPort;
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
 import com.service.application.legalarchiving.policy.ArchiveDecisionContext;
 import com.service.application.legalarchiving.policy.LegalArchivingPolicy;
-import com.service.infrastructure.adapters.legalarchiving.ArchivePayloadSerializer;
 import com.service.infrastructure.signature.SignatureContextKeys;
 import com.service.infrastructure.signature.validation.model.SignatureData;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -36,7 +35,7 @@ public class LegalArchivingRequestHandler {
     private static final String REQUEST_ID_HEADER = "Request-Id";
 
     private final LegalArchivingPolicy legalArchivingPolicy;
-    private final ArchivePayloadSerializer payloadSerializer;
+    private final ObjectSerializer payloadSerializer;
     private final LegalArchivingEventMapper eventMapper;
     private final LegalArchivingInPort legalArchivingInPort;
 
