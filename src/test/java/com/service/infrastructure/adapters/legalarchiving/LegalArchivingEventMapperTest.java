@@ -29,8 +29,7 @@ class LegalArchivingEventMapperTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
-                "POST",
-                "/v1/payments",
+                new com.service.application.legalarchiving.model.LegalArchivingEvent.HttpContext("POST", "/v1/payments"),
                 new byte[]{9, 8, 7},
                 signatureData
         );
@@ -57,8 +56,7 @@ class LegalArchivingEventMapperTest {
                 "GET /status",
                 "OUTBOUND",
                 "RESPONSE",
-                "GET",
-                "/status",
+                new com.service.application.legalarchiving.model.LegalArchivingEvent.HttpContext("GET", "/status"),
                 null,
                 null
         );

@@ -20,8 +20,7 @@ public class LegalArchivingEventMapper {
      * @param operation the derived business operation name
      * @param direction whether the archived exchange is inbound or outbound
      * @param phase whether the event represents the request or the response
-     * @param httpMethod the archived HTTP method
-     * @param httpPath the archived HTTP path
+     * @param httpContext the archived HTTP context
      * @param payload the archived payload bytes when present
      * @param signatureData the signature data already prepared by the signature layer
      * @return the application event ready for the legal-archiving use case
@@ -31,8 +30,7 @@ public class LegalArchivingEventMapper {
             String operation,
             String direction,
             String phase,
-            String httpMethod,
-            String httpPath,
+            LegalArchivingEvent.HttpContext httpContext,
             byte[] payload,
             SignatureData signatureData) {
         return new LegalArchivingEvent(
@@ -40,7 +38,7 @@ public class LegalArchivingEventMapper {
                 operation,
                 direction,
                 phase,
-                new LegalArchivingEvent.HttpContext(httpMethod, httpPath),
+                httpContext,
                 payload,
                 null == signatureData ? null : signatureData.signature(),
                 null == signatureData ? null : signatureData.signatureInput(),

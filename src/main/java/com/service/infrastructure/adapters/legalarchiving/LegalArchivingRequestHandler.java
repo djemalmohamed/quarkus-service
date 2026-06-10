@@ -74,8 +74,7 @@ public class LegalArchivingRequestHandler {
                         operation,
                         "INBOUND",
                         "REQUEST",
-                        requestContext.getMethod(),
-                        path,
+                        new LegalArchivingEvent.HttpContext(requestContext.getMethod(), path),
                         payloadSerializer.serialize(requestBody),
                         (SignatureData) requestContext.getProperty(
                                 SignatureContextKeys.REQUEST_SIGNATURE_DATA)),
