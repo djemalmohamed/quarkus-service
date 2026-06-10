@@ -81,7 +81,7 @@ class DefaultSignatureValidationEngineTest {
         assertEquals(REQUEST_ID, report.signatureData().componentValues().get("request-id"));
         assertEquals("POST", report.signatureData().componentValues().get("@method"));
         assertTrue(report.signatureData().signatureInput().startsWith("sig="));
-        assertTrue(new String(report.signatureData().signature(), StandardCharsets.UTF_8).startsWith("sig=:"));
+        assertTrue(report.signatureData().signature().startsWith("sig=:"));
     }
 
     @Test

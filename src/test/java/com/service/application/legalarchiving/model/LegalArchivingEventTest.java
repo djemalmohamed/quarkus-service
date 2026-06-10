@@ -16,9 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LegalArchivingEventTest {
 
     @Test
-    void shouldDefensivelyCopyPayloadSignatureAndComponents() {
+    void shouldDefensivelyCopyPayloadAndComponents() {
         byte[] payload = "payload".getBytes(StandardCharsets.UTF_8);
-        byte[] signature = "sig=:abc:".getBytes(StandardCharsets.UTF_8);
         List<LegalArchivingEvent.SignatureComponent> components = new ArrayList<>();
         components.add(new LegalArchivingEvent.SignatureComponent("@method", "POST"));
 
@@ -27,18 +26,19 @@ class LegalArchivingEventTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 payload,
-                signature,
+                "sig=:abc:",
                 "sig=(\"@method\")",
                 components
         );
 
         payload[0] = 'x';
-        signature[0] = 'x';
         components.add(new LegalArchivingEvent.SignatureComponent("request-id", "req-1"));
 
         assertArrayEquals("payload".getBytes(StandardCharsets.UTF_8), event.payload());
-        assertArrayEquals("sig=:abc:".getBytes(StandardCharsets.UTF_8), event.signature());
+        assertEquals("sig=:abc:", event.signature());
         assertEquals(List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST")), event.signatureComponents());
     }
 
@@ -49,6 +49,8 @@ class LegalArchivingEventTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 "payload".getBytes(StandardCharsets.UTF_8),
                 null,
                 "sig=(\"@method\")",
@@ -60,6 +62,8 @@ class LegalArchivingEventTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 null,
                 null,
                 "   ",
@@ -81,14 +85,16 @@ class LegalArchivingEventTest {
     }
 
     @Test
-    void shouldImplementValueSemanticsForArraysAndToString() {
+    void shouldImplementValueSemanticsAndToString() {
         LegalArchivingEvent left = new LegalArchivingEvent(
                 "event-1",
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 "payload".getBytes(StandardCharsets.UTF_8),
-                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:",
                 "sig=(\"@method\")",
                 List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
         );
@@ -97,8 +103,10 @@ class LegalArchivingEventTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 "payload".getBytes(StandardCharsets.UTF_8),
-                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:",
                 "sig=(\"@method\")",
                 List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
         );
@@ -107,8 +115,10 @@ class LegalArchivingEventTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 "payload".getBytes(StandardCharsets.UTF_8),
-                "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                "sig=:abc:",
                 "sig=(\"@method\")",
                 List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
         );
@@ -117,6 +127,7 @@ class LegalArchivingEventTest {
         assertEquals(left.hashCode(), right.hashCode());
         assertNotEquals(left, different);
         assertTrue(left.toString().contains("eventId='event-1'"));
+        assertTrue(left.toString().contains("httpMethod='POST'"));
         assertTrue(left.toString().contains("payloadLength=7"));
     }
 }

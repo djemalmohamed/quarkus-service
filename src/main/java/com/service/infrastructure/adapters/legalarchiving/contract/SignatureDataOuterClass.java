@@ -1,7 +1,6 @@
 package com.service.infrastructure.adapters.legalarchiving.contract;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.ByteString;
 
 /**
  * Simulated generated protobuf container for HTTP Message Signature header values.
@@ -17,7 +16,7 @@ public final class SignatureDataOuterClass {
     public static final class SignatureData {
 
         @JsonProperty("signature")
-        private final ByteString signature;
+        private final String signature;
 
         @JsonProperty("signature_input")
         private final String signatureInput;
@@ -35,9 +34,9 @@ public final class SignatureDataOuterClass {
         }
 
         /**
-         * @return the raw HTTP {@code Signature} header as generated protobuf {@link ByteString}
+         * @return the raw HTTP {@code Signature} header value
          */
-        public ByteString getSignature() {
+        public String getSignature() {
             return signature;
         }
 
@@ -53,16 +52,16 @@ public final class SignatureDataOuterClass {
          */
         public static final class Builder {
 
-            private ByteString signature;
+            private String signature;
             private String signatureInput;
 
             /**
-             * Sets the raw HTTP {@code Signature} header bytes using the generated protobuf API shape.
+             * Sets the raw HTTP {@code Signature} header value.
              *
-             * @param signature the signature bytes
+             * @param signature the signature header value
              * @return the current builder
              */
-            public Builder setSignature(ByteString signature) {
+            public Builder setSignature(String signature) {
                 this.signature = signature;
                 return this;
             }

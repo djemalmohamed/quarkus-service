@@ -1,6 +1,5 @@
 package com.service.infrastructure.signature.validation.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,7 +14,7 @@ import java.util.Objects;
  * recalculating or duplicating RFC-specific logic.</p>
  */
 public record SignatureData(
-        byte[] signature,
+        String signature,
         String signatureInput,
         Map<String, String> componentValues
 ) {
@@ -23,23 +22,14 @@ public record SignatureData(
     /**
      * Creates an immutable view of the validated signature material.
      *
-     * @param signature full {@code Signature} header value for the selected label, encoded as bytes
+     * @param signature full {@code Signature} header value for the selected label
      * @param signatureInput full {@code Signature-Input} header value for the selected label
      * @param componentValues covered component identifiers associated with their resolved values
      */
     public SignatureData {
-        signature = null == signature ? null : signature.clone();
         componentValues = null == componentValues
                 ? Map.of()
                 : Collections.unmodifiableMap(new LinkedHashMap<>(componentValues));
-    }
-
-    /**
-     * Returns a defensive copy of the signature bytes.
-     */
-    @Override
-    public byte[] signature() {
-        return null == signature ? null : signature.clone();
     }
 
     /**
@@ -59,20 +49,20 @@ public record SignatureData(
         if (!(other instanceof SignatureData that)) {
             return false;
         }
-        return Arrays.equals(signature, that.signature)
+        return Objects.equals(signature, that.signature)
                 && Objects.equals(signatureInput, that.signatureInput)
                 && Objects.equals(componentValues, that.componentValues);
     }
 
     @Override
     public int hashCode() {
-        return 31 * Objects.hash(signatureInput, componentValues) + Arrays.hashCode(signature);
+        return Objects.hash(signature, signatureInput, componentValues);
     }
 
     @Override
     public String toString() {
         return "SignatureData{"
-                + "signatureLength=" + (null == signature ? 0 : signature.length)
+                + "signature='" + signature + '\''
                 + ", signatureInput='" + signatureInput + "'"
                 + ", componentNames=" + componentValues.keySet()
                 + '}';

@@ -54,8 +54,10 @@ class LegalArchivingKafkaTest {
                     "POST /v1/payments",
                     "INBOUND",
                     "REQUEST",
+                    "POST",
+                    "/v1/payments",
                     "{\"paymentId\":\"p-1\"}".getBytes(StandardCharsets.UTF_8),
-                    "sig1=:AQID:".getBytes(StandardCharsets.UTF_8),
+                    "sig1=:AQID:",
                     "sig1=(\"@method\" \"request-id\")",
                     List.of(
                             new LegalArchivingEvent.SignatureComponent("@method", "POST"),
@@ -77,14 +79,13 @@ class LegalArchivingKafkaTest {
                     Base64.getEncoder().encodeToString(event.payload()),
                     root.at("/legal_core_data/payload").asText()
             );
-            assertEquals(
-                    Base64.getEncoder().encodeToString(event.signature()),
-                    root.at("/lea_signature_data/signature").asText()
-            );
+            assertEquals("sig1=:AQID:", root.at("/lea_signature_data/signature").asText());
             assertEquals(
                     "sig1=(\"@method\" \"request-id\")",
                     root.at("/lea_signature_data/signature_input").asText()
             );
+            assertEquals("POST", root.at("/lea_additional_data/http_method").asText());
+            assertEquals("/v1/payments", root.at("/lea_additional_data/http_path").asText());
             assertEquals("@method", root.at("/signature_params/signature_parameter/0/signature_param_key").asText());
             assertEquals("POST", root.at("/signature_params/signature_parameter/0/signature_param_value").asText());
         }

@@ -46,6 +46,8 @@ public class LegalArchivingFilter {
                         operation,
                         "INBOUND",
                         "RESPONSE",
+                        requestContext.getMethod(),
+                        requestContext.getUriInfo().getRequestUri().getPath(),
                         payloadSerializer.serialize(responseContext.getEntity()),
                         (SignatureData) requestContext.getProperty(
                                 SignatureContextKeys.RESPONSE_SIGNATURE_DATA)),

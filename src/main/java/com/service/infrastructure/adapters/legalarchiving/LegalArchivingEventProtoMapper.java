@@ -26,6 +26,8 @@ public class LegalArchivingEventProtoMapper {
                 LegalArchivingRequestOuterClass.LegalArchivingRequest.newBuilder()
                         .setLeaAdditionalData(LegalArchivingAdditionalDataOuterClass.LegalArchivingAdditionalData
                                 .newBuilder()
+                                .setHttpPath(event.httpPath())
+                                .setHttpMethod(event.httpMethod())
                                 .build());
 
         if (event.hasPayload()) {
@@ -38,7 +40,7 @@ public class LegalArchivingEventProtoMapper {
             SignatureDataOuterClass.SignatureData.Builder signatureBuilder =
                     SignatureDataOuterClass.SignatureData.newBuilder();
             if (null != event.signature()) {
-                signatureBuilder.setSignature(ByteString.copyFrom(event.signature()));
+                signatureBuilder.setSignature(event.signature());
             }
             if (null != event.signatureInput()) {
                 signatureBuilder.setSignatureInput(event.signatureInput());

@@ -97,6 +97,8 @@ class LegalArchivingAdapterTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 List.of()
         )).await().indefinitely());
     }
@@ -163,8 +165,10 @@ class LegalArchivingAdapterTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 "{\"uetr\":\"abc\"}".getBytes(StandardCharsets.UTF_8),
-                "sig1=:AQID:".getBytes(StandardCharsets.UTF_8),
+                "sig1=:AQID:",
                 "sig1=(\"@method\")",
                 List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST"))
         );

@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,14 +18,15 @@ class LegalArchivingEventProtoMapperTest {
     @Test
     void mapperProducesOnlyFieldsDefinedBySharedProtoContract() {
         byte[] payload = "{\"uetr\":\"abc\",\"amount\":10}".getBytes(StandardCharsets.UTF_8);
-        byte[] signature = "sig1=:abc123=:".getBytes(StandardCharsets.UTF_8);
         LegalArchivingEvent event = new LegalArchivingEvent(
                 "event-123",
                 "POST /v1/payments",
                 "INBOUND",
                 "RESPONSE",
+                "POST",
+                "/v1/payments",
                 payload,
-                signature,
+                "sig1=:abc123=:",
                 "sig1=(\"content-type\" \"@method\");created=1704722601",
                 List.of(
                         new LegalArchivingEvent.SignatureComponent("content-type", "application/json"),
@@ -38,14 +40,14 @@ class LegalArchivingEventProtoMapperTest {
         assertTrue(json.contains("\"lea_signature_data\""));
         assertTrue(json.contains("\"signature_params\""));
         assertTrue(json.contains("\"legal_core_data\""));
-        assertTrue(json.contains("\"lea_additional_data\":{}"));
+        assertTrue(json.contains("\"http_path\":\"/v1/payments\""));
+        assertTrue(json.contains("\"http_method\":\"POST\""));
         assertArrayEquals(payload, proto.getLegalCoreData().getPayload().toByteArray());
-        assertArrayEquals(signature, proto.getLeaSignatureData().getSignature().toByteArray());
+        assertEquals("sig1=:abc123=:", proto.getLeaSignatureData().getSignature());
 
         assertFalse(json.contains("event_id"));
         assertFalse(json.contains("request_id"));
         assertFalse(json.contains("operation"));
-        assertFalse(json.contains("http_method"));
         assertFalse(json.contains("\"uri\""));
         assertFalse(json.contains("status_code"));
         assertFalse(json.contains("\"direction\""));

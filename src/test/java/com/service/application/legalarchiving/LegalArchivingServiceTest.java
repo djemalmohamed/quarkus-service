@@ -21,8 +21,10 @@ class LegalArchivingServiceTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 new byte[]{1},
-                new byte[]{2},
+                "sig1=:Ag==:",
                 "sig1=(\"@method\")",
                 java.util.List.of()
         );

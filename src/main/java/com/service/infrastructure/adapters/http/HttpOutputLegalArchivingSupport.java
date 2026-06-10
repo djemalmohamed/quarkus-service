@@ -93,6 +93,8 @@ public class HttpOutputLegalArchivingSupport {
                         operation,
                         "OUTBOUND",
                         phase,
+                        method,
+                        uri.getRawPath(),
                         payload,
                         signatureData))
                 .subscribe()

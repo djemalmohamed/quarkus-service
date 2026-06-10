@@ -6,12 +6,12 @@ import com.service.application.port.in.LegalArchivingInPort;
 import com.service.infrastructure.adapters.legalarchiving.LegalArchivingEventMapper;
 import com.service.infrastructure.signature.validation.model.SignatureData;
 import io.smallrye.mutiny.Uni;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +41,7 @@ class HttpOutputLegalArchivingSupportTest {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put("REQUEST-ID", "req-1");
         SignatureData signatureData = new SignatureData(
-                "sig1=:AQID:".getBytes(StandardCharsets.UTF_8),
+                "sig1=:AQID:",
                 "sig1=(\"@method\" \"request-id\")",
                 Map.of("@method", "POST", "request-id", "req-1")
         );
@@ -61,6 +61,8 @@ class HttpOutputLegalArchivingSupportTest {
         assertEquals("POST partner.example.com/v1/payments", event.operation());
         assertEquals("OUTBOUND", event.direction());
         assertEquals("REQUEST", event.phase());
+        assertEquals("POST", event.httpMethod());
+        assertEquals("/v1/payments", event.httpPath());
         assertTrue(event.hasPayload());
         assertTrue(event.hasSignatureData());
         assertEquals(2, event.signatureComponents().size());
@@ -108,6 +110,8 @@ class HttpOutputLegalArchivingSupportTest {
         LegalArchivingEvent event = eventCaptor.getValue();
         assertNotNull(event.eventId());
         assertEquals("RESPONSE", event.phase());
+        assertEquals("GET", event.httpMethod());
+        assertEquals("/v1/payments", event.httpPath());
         assertFalse(event.hasPayload());
         assertFalse(event.hasSignatureData());
     }

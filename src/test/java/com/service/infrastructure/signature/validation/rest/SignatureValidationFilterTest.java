@@ -139,7 +139,7 @@ class SignatureValidationFilterTest {
                                 null,
                                 policy.signatureAlgorithm(),
                                 new SignatureData(
-                                        "sig=:abc:".getBytes(StandardCharsets.UTF_8),
+                                        "sig=:abc:",
                                         "sig=(\"@method\")",
                                         Map.of("@method", "POST")
                                 ),

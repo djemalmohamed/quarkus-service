@@ -3,7 +3,6 @@ package com.service.infrastructure.adapters.legalarchiving;
 import com.service.infrastructure.signature.validation.model.SignatureData;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -20,7 +19,7 @@ class LegalArchivingEventMapperTest {
         componentValues.put("@method", "POST");
         componentValues.put("request-id", "req-1");
         SignatureData signatureData = new SignatureData(
-                "sig1=:AQID:".getBytes(StandardCharsets.UTF_8),
+                "sig1=:AQID:",
                 "sig1=(\"@method\" \"request-id\")",
                 componentValues
         );
@@ -30,6 +29,8 @@ class LegalArchivingEventMapperTest {
                 "POST /v1/payments",
                 "INBOUND",
                 "REQUEST",
+                "POST",
+                "/v1/payments",
                 new byte[]{9, 8, 7},
                 signatureData
         );
@@ -37,8 +38,10 @@ class LegalArchivingEventMapperTest {
         assertEquals("req-1", event.eventId());
         assertEquals("INBOUND", event.direction());
         assertEquals("REQUEST", event.phase());
+        assertEquals("POST", event.httpMethod());
+        assertEquals("/v1/payments", event.httpPath());
         assertArrayEquals(new byte[]{9, 8, 7}, event.payload());
-        assertArrayEquals("sig1=:AQID:".getBytes(StandardCharsets.UTF_8), event.signature());
+        assertEquals("sig1=:AQID:", event.signature());
         assertEquals("sig1=(\"@method\" \"request-id\")", event.signatureInput());
         assertEquals(2, event.signatureComponents().size());
         assertEquals("@method", event.signatureComponents().get(0).key());
@@ -54,6 +57,8 @@ class LegalArchivingEventMapperTest {
                 "GET /status",
                 "OUTBOUND",
                 "RESPONSE",
+                "GET",
+                "/status",
                 null,
                 null
         );

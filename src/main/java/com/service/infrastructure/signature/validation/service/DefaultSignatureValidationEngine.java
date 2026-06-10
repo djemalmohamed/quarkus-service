@@ -26,7 +26,6 @@ import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import org.jboss.logging.Logger;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -454,7 +453,7 @@ public class DefaultSignatureValidationEngine implements SignatureValidationEngi
         }
         String signatureHeader = context.signatureHeaders.get(SignatureConstants.HEADER_SIGNATURE);
         return new SignatureData(
-                null == signatureHeader ? null : signatureHeader.getBytes(StandardCharsets.UTF_8),
+                signatureHeader,
                 context.signatureHeaders.get(SignatureConstants.HEADER_SIGNATURE_INPUT),
                 context.componentValues
         );

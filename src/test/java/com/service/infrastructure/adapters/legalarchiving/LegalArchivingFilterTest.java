@@ -9,6 +9,7 @@ import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +47,9 @@ class LegalArchivingFilterTest {
     @Mock
     private ContainerResponseContext responseContext;
 
+    @Mock
+    private UriInfo uriInfo;
+
     private final Map<String, Object> properties = new HashMap<>();
     private LegalArchivingFilter filter;
 
@@ -57,6 +62,9 @@ class LegalArchivingFilterTest {
         );
 
         when(requestContext.getProperty(any())).thenAnswer(invocation -> properties.get(invocation.getArgument(0)));
+        when(requestContext.getMethod()).thenReturn("POST");
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
+        when(uriInfo.getRequestUri()).thenReturn(URI.create("https://gateway.example.com/v1/payments"));
         when(legalArchivingInPort.archive(any())).thenReturn(Uni.createFrom().voidItem());
     }
 
@@ -67,7 +75,7 @@ class LegalArchivingFilterTest {
         properties.put(LegalArchivingContextKeys.OPERATION, "POST /v1/payments");
         properties.put(
                 SignatureContextKeys.RESPONSE_SIGNATURE_DATA,
-                new SignatureData(new byte[]{9}, "sig1=(\"@status\")", Map.of("@status", "202"))
+                new SignatureData("sig1=:CQ==:", "sig1=(\"@status\")", Map.of("@status", "202"))
         );
 
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -81,6 +89,8 @@ class LegalArchivingFilterTest {
 
         LegalArchivingEvent event = eventCaptor.getValue();
         assertEquals("RESPONSE", event.phase());
+        assertEquals("POST", event.httpMethod());
+        assertEquals("/v1/payments", event.httpPath());
         assertEquals("req-1", headers.getFirst("Request-Id"));
         assertEquals("{\"status\":\"RECEIVED\"}", new String(event.payload(), StandardCharsets.UTF_8));
         assertEquals("@status", event.signatureComponents().get(0).key());
@@ -141,6 +151,8 @@ class LegalArchivingFilterTest {
 
         LegalArchivingEvent event = eventCaptor.getValue();
         assertEquals(List.of(), event.signatureComponents());
+        assertEquals("POST", event.httpMethod());
+        assertEquals("/v1/payments", event.httpPath());
         assertFalse(event.hasSignatureData());
     }
 }

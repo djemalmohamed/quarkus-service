@@ -83,12 +83,12 @@ class HttpOutputAdapterTest {
     @Test
     void shouldExecuteSignedRequestAndMapValidatedResponse() {
         SignatureData requestSignatureData = new SignatureData(
-                "sig1=:AQID:".getBytes(),
+                "sig1=:AQID:",
                 "sig1=(\"@method\" \"request-id\")",
                 Map.of("@method", "POST", "request-id", "req-1")
         );
         SignatureData responseSignatureData = new SignatureData(
-                "sig2=:AQID:".getBytes(),
+                "sig2=:AQID:",
                 "sig2=(\"@status\")",
                 Map.of("@status", "202")
         );
@@ -199,7 +199,7 @@ class HttpOutputAdapterTest {
                 .thenReturn(new SignatureGenerationResult(
                         "request-policy",
                         Map.of("Signature", "sig1=:AQID:"),
-                        new SignatureData("sig1=:AQID:".getBytes(), "sig1=(\"@method\")", Map.of("@method", "POST"))
+                        new SignatureData("sig1=:AQID:", "sig1=(\"@method\")", Map.of("@method", "POST"))
                 ));
         when(signaturePolicyResolver.resolveOutboundValidationOptional(any()))
                 .thenThrow(new IllegalStateException("validation-boom"));
