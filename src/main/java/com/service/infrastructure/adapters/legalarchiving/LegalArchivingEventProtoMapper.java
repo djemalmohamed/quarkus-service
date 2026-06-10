@@ -22,13 +22,18 @@ public class LegalArchivingEventProtoMapper {
      * @return the protobuf-shaped message expected by the transport adapter
      */
     public LegalArchivingRequestOuterClass.LegalArchivingRequest toProto(LegalArchivingEvent event) {
+        LegalArchivingEvent.HttpContext httpContext = event.http();
+        LegalArchivingAdditionalDataOuterClass.LegalArchivingAdditionalData.Builder additionalDataBuilder =
+                LegalArchivingAdditionalDataOuterClass.LegalArchivingAdditionalData.newBuilder();
+        if (null != httpContext.method()) {
+            additionalDataBuilder.setHttpMethod(httpContext.method());
+        }
+        if (null != httpContext.path()) {
+            additionalDataBuilder.setHttpPath(httpContext.path());
+        }
         LegalArchivingRequestOuterClass.LegalArchivingRequest.Builder builder =
                 LegalArchivingRequestOuterClass.LegalArchivingRequest.newBuilder()
-                        .setLeaAdditionalData(LegalArchivingAdditionalDataOuterClass.LegalArchivingAdditionalData
-                                .newBuilder()
-                                .setHttpPath(event.httpPath())
-                                .setHttpMethod(event.httpMethod())
-                                .build());
+                        .setLeaAdditionalData(additionalDataBuilder.build());
 
         if (event.hasPayload()) {
             builder.setLegalCoreData(LegalArchivingDataOuterClass.LegalArchivingData.newBuilder()

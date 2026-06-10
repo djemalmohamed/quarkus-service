@@ -38,6 +38,8 @@ class LegalArchivingEventTest {
         components.add(new LegalArchivingEvent.SignatureComponent("request-id", "req-1"));
 
         assertArrayEquals("payload".getBytes(StandardCharsets.UTF_8), event.payload());
+        assertEquals("POST", event.http().method());
+        assertEquals("/v1/payments", event.http().path());
         assertEquals("sig=:abc:", event.signature());
         assertEquals(List.of(new LegalArchivingEvent.SignatureComponent("@method", "POST")), event.signatureComponents());
     }
@@ -127,7 +129,7 @@ class LegalArchivingEventTest {
         assertEquals(left.hashCode(), right.hashCode());
         assertNotEquals(left, different);
         assertTrue(left.toString().contains("eventId='event-1'"));
-        assertTrue(left.toString().contains("httpMethod='POST'"));
+        assertTrue(left.toString().contains("HttpContext[method=POST, path=/v1/payments]"));
         assertTrue(left.toString().contains("payloadLength=7"));
     }
 }
