@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,11 +43,16 @@ class LegalArchivingAdapterTest {
     private Producer<String, byte[]> producer;
 
     private final LegalArchivingEventProtoMapper protoMapper = new LegalArchivingEventProtoMapper();
+    private final RecordingExecutor legalArchivingWorker = new RecordingExecutor();
 
     @Test
     void shouldNotCreateProducerWhenFeatureIsDisabled() {
         when(configuration.enabled()).thenReturn(false);
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
 
         adapter.init();
         assertDoesNotThrow(() -> adapter.archive(sampleEvent("event-1")).await().indefinitely());
@@ -68,12 +75,17 @@ class LegalArchivingAdapterTest {
             return null;
         }).when(producer).send(any(), any());
 
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
         adapter.init();
         adapter.archive(sampleEvent("event-1")).await().indefinitely();
 
         ArgumentCaptor<ProducerRecord<String, byte[]>> recordCaptor = ArgumentCaptor.forClass(ProducerRecord.class);
         verify(producer).send(recordCaptor.capture(), any());
+        assertEquals(1, legalArchivingWorker.executionCount());
         ProducerRecord<String, byte[]> record = recordCaptor.getValue();
         assertEquals("archive-topic", record.topic());
         assertEquals("event-1", record.key());
@@ -86,7 +98,11 @@ class LegalArchivingAdapterTest {
         when(configuration.toProducerProperties()).thenReturn(new Properties());
         doThrow(new IllegalStateException("boom")).when(producer).send(any(), any());
 
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
         adapter.init();
 
         assertThrows(IllegalStateException.class, () -> adapter.archive(new LegalArchivingEvent(
@@ -114,7 +130,11 @@ class LegalArchivingAdapterTest {
             return null;
         }).when(producer).send(any(), any());
 
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
         adapter.init();
 
         assertThrows(IllegalStateException.class, () -> adapter.archive(sampleEvent("event-1")).await().indefinitely());
@@ -126,7 +146,11 @@ class LegalArchivingAdapterTest {
         when(configuration.topic()).thenReturn("archive-topic");
         when(configuration.toProducerProperties()).thenReturn(new Properties());
 
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
         adapter.init();
         adapter.close();
 
@@ -138,7 +162,11 @@ class LegalArchivingAdapterTest {
     void shouldIgnoreCloseWhenProducerWasNeverCreated() {
         when(configuration.enabled()).thenReturn(false);
 
-        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(configuration, protoMapper, producer);
+        TestableLegalArchivingAdapter adapter = new TestableLegalArchivingAdapter(
+                configuration,
+                protoMapper,
+                legalArchivingWorker,
+                producer);
         adapter.init();
         adapter.close();
 
@@ -147,7 +175,7 @@ class LegalArchivingAdapterTest {
 
     @Test
     void shouldCreateNativeKafkaProducerFromProperties() {
-        LegalArchivingAdapter adapter = new LegalArchivingAdapter(configuration, protoMapper);
+        LegalArchivingAdapter adapter = new LegalArchivingAdapter(configuration, protoMapper, legalArchivingWorker);
         Properties properties = new Properties();
         properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
@@ -181,15 +209,31 @@ class LegalArchivingAdapterTest {
         private TestableLegalArchivingAdapter(
                 LegalArchivingProducerConfiguration configuration,
                 LegalArchivingEventProtoMapper protoMapper,
+                Executor legalArchivingWorker,
                 Producer<String, byte[]> testProducer
         ) {
-            super(configuration, protoMapper);
+            super(configuration, protoMapper, legalArchivingWorker);
             this.testProducer = testProducer;
         }
 
         @Override
         Producer<String, byte[]> createProducer(Properties properties) {
             return testProducer;
+        }
+    }
+
+    private static final class RecordingExecutor implements Executor {
+
+        private final AtomicInteger executionCount = new AtomicInteger();
+
+        @Override
+        public void execute(Runnable command) {
+            executionCount.incrementAndGet();
+            command.run();
+        }
+
+        private int executionCount() {
+            return executionCount.get();
         }
     }
 }

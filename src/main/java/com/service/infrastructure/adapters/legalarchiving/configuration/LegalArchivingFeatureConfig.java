@@ -3,6 +3,7 @@ package com.service.infrastructure.adapters.legalarchiving.configuration;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +47,11 @@ public interface LegalArchivingFeatureConfig {
      * @return producer-specific Kafka overrides for legal archiving only
      */
     Producer producer();
+
+    /**
+     * @return dedicated worker-pool settings for legal archiving offload
+     */
+    Worker worker();
 
     /**
      * Inbound HTTP policy expressed through method-specific decisions and path overrides.
@@ -115,6 +121,30 @@ public interface LegalArchivingFeatureConfig {
          */
         @WithDefault("true")
         boolean enableIdempotence();
+    }
+
+    /**
+     * Dedicated worker-pool settings used to isolate legal-archiving transport offload.
+     */
+    interface Worker {
+
+        /**
+         * @return number of worker threads available for legal-archiving transport work
+         */
+        @WithDefault("4")
+        int poolSize();
+
+        /**
+         * @return maximum number of pending legal-archiving tasks kept in memory
+         */
+        @WithDefault("500")
+        int queueSize();
+
+        /**
+         * @return graceful shutdown timeout for the dedicated worker pool
+         */
+        @WithDefault("10S")
+        Duration shutdownTimeout();
     }
 
     /**

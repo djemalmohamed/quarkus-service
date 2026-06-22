@@ -3,10 +3,12 @@ package com.service.infrastructure.adapters.legalarchiving;
 import com.service.application.legalarchiving.model.LegalArchivingEvent;
 import com.service.application.port.out.LegalArchivingPort;
 import com.service.infrastructure.adapters.legalarchiving.configuration.LegalArchivingProducerConfiguration;
+import com.service.infrastructure.adapters.legalarchiving.configuration.LegalArchivingWorker;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -27,6 +29,8 @@ public class LegalArchivingAdapter implements LegalArchivingPort {
 
     private final LegalArchivingProducerConfiguration configuration;
     private final LegalArchivingEventProtoMapper protoMapper;
+    @LegalArchivingWorker
+    private final Executor legalArchivingWorker;
     private Producer<String, byte[]> producer;
 
     @PostConstruct
@@ -57,6 +61,7 @@ public class LegalArchivingAdapter implements LegalArchivingPort {
                 protoMapper.toProto(event).toByteArray());
 
         return sendReactive(record)
+                .runSubscriptionOn(legalArchivingWorker)
                 .invoke(metadata -> log.info(
                         "Legal archive emitted topic={} partition={} offset={} eventId={} operation={} phase={}",
                         metadata.topic(),
