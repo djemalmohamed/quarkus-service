@@ -2,6 +2,7 @@ package com.service.infrastructure.adapters.legalarchiving.configuration;
 
 import com.service.infrastructure.configuration.NativeKafkaProducerPropertiesFactory;
 import java.util.Properties;
+import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -19,6 +20,7 @@ class LegalArchivingProducerConfigurationTest {
     private NativeKafkaProducerPropertiesFactory propertiesFactory;
     private LegalArchivingFeatureConfig featureConfig;
     private LegalArchivingFeatureConfig.Producer producerConfig;
+    private LegalArchivingKafkaPropertiesProvider kafkaPropertiesProvider;
     private LegalArchivingProducerConfiguration configuration;
 
     @BeforeEach
@@ -26,9 +28,14 @@ class LegalArchivingProducerConfigurationTest {
         propertiesFactory = mock(NativeKafkaProducerPropertiesFactory.class);
         featureConfig = mock(LegalArchivingFeatureConfig.class);
         producerConfig = mock(LegalArchivingFeatureConfig.Producer.class);
-        configuration = new LegalArchivingProducerConfiguration(propertiesFactory, featureConfig);
+        kafkaPropertiesProvider = mock(LegalArchivingKafkaPropertiesProvider.class);
+        configuration = new LegalArchivingProducerConfiguration(
+                propertiesFactory,
+                featureConfig,
+                kafkaPropertiesProvider);
 
         when(featureConfig.producer()).thenReturn(producerConfig);
+        when(kafkaPropertiesProvider.overrideProperties()).thenReturn(Map.of());
     }
 
     @Test
@@ -62,5 +69,28 @@ class LegalArchivingProducerConfigurationTest {
         assertEquals("true", properties.getProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG));
         assertEquals(StringSerializer.class.getName(), properties.getProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG));
         assertEquals(ByteArraySerializer.class.getName(), properties.getProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG));
+    }
+
+    @Test
+    void shouldOverrideDefaultKafkaConnectionWhenFeatureSpecificPropertiesAreProvided() {
+        Properties baseProperties = new Properties();
+        baseProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "agr-broker:9092");
+        baseProperties.put("security.protocol", "SASL_SSL");
+        baseProperties.put("sasl.jaas.config", "agr-jaas");
+        when(propertiesFactory.createProducerProperties("archive")).thenReturn(baseProperties);
+        when(featureConfig.producerClientIdSuffix()).thenReturn("archive");
+        when(producerConfig.acks()).thenReturn("all");
+        when(producerConfig.retries()).thenReturn(3);
+        when(producerConfig.requestTimeoutMs()).thenReturn(15000);
+        when(producerConfig.enableIdempotence()).thenReturn(true);
+        when(kafkaPropertiesProvider.overrideProperties()).thenReturn(Map.of(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "lea-broker:9094",
+                "sasl.jaas.config", "lea-jaas"));
+
+        Properties properties = configuration.toProducerProperties();
+
+        assertEquals("lea-broker:9094", properties.getProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG));
+        assertEquals("SASL_SSL", properties.getProperty("security.protocol"));
+        assertEquals("lea-jaas", properties.getProperty("sasl.jaas.config"));
     }
 }

@@ -17,6 +17,7 @@ public class LegalArchivingProducerConfiguration {
 
     private final NativeKafkaProducerPropertiesFactory producerPropertiesFactory;
     private final LegalArchivingFeatureConfig featureConfig;
+    private final LegalArchivingKafkaPropertiesProvider kafkaPropertiesProvider;
 
     /**
      * @return {@code true} when both Kafka infrastructure and the legal-archiving feature are enabled
@@ -33,12 +34,14 @@ public class LegalArchivingProducerConfiguration {
     }
 
     /**
-     * Builds the effective producer properties, including serializer choices for the simulated contract.
+     * Builds the effective producer properties, including optional feature-specific broker/security
+     * overrides and serializer choices for the simulated contract.
      *
      * @return Kafka producer properties ready to instantiate a producer
      */
     public Properties toProducerProperties() {
         Properties properties = producerPropertiesFactory.createProducerProperties(featureConfig.producerClientIdSuffix());
+        properties.putAll(kafkaPropertiesProvider.overrideProperties());
         properties.put(ProducerConfig.ACKS_CONFIG, featureConfig.producer().acks());
         properties.put(ProducerConfig.RETRIES_CONFIG, Integer.toString(featureConfig.producer().retries()));
         properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG,
