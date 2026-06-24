@@ -43,11 +43,20 @@ public class LegalArchivingKafkaPropertiesProvider {
         putIfPresent(properties, SslConfigs.SSL_KEY_PASSWORD_CONFIG, kafkaConfig.sslKeyPassword());
         putIfPresent(properties, SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG,
                 kafkaConfig.sslEndpointIdentificationAlgorithm());
+        validateBootstrapServersOverride(properties);
         return properties;
     }
 
     private void putIfPresent(Map<String, Object> target, String propertyName, java.util.Optional<String> value) {
         value.filter(candidate -> !candidate.isBlank())
                 .ifPresent(candidate -> target.put(propertyName, candidate));
+    }
+
+    private void validateBootstrapServersOverride(Map<String, Object> properties) {
+        if (!properties.isEmpty() && !properties.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
+            throw new IllegalStateException(
+                    "agw.connectivity.features.legal-archiving.kafka.bootstrap.servers must be configured "
+                            + "when any legal-archiving Kafka override is set");
+        }
     }
 }

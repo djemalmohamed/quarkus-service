@@ -9,6 +9,7 @@ import org.apache.kafka.common.config.SslConfigs;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -70,5 +71,29 @@ class LegalArchivingKafkaPropertiesProviderTest {
         LegalArchivingKafkaPropertiesProvider provider = new LegalArchivingKafkaPropertiesProvider(config);
 
         assertEquals(Map.of(), provider.overrideProperties());
+    }
+
+    @Test
+    void shouldRejectPartialOverridesWhenBootstrapServersAreMissing() {
+        LegalArchivingKafkaConfig config = mock(LegalArchivingKafkaConfig.class);
+        when(config.bootstrapServers()).thenReturn(Optional.empty());
+        when(config.securityProtocol()).thenReturn(Optional.of("SASL_SSL"));
+        when(config.saslMechanism()).thenReturn(Optional.empty());
+        when(config.saslJaasConfig()).thenReturn(Optional.empty());
+        when(config.saslClientCallbackHandlerClass()).thenReturn(Optional.empty());
+        when(config.saslLoginCallbackHandlerClass()).thenReturn(Optional.empty());
+        when(config.saslLoginClass()).thenReturn(Optional.empty());
+        when(config.sslTruststoreLocation()).thenReturn(Optional.empty());
+        when(config.sslTruststorePassword()).thenReturn(Optional.empty());
+        when(config.sslTruststoreType()).thenReturn(Optional.empty());
+        when(config.sslKeystoreLocation()).thenReturn(Optional.empty());
+        when(config.sslKeystorePassword()).thenReturn(Optional.empty());
+        when(config.sslKeystoreType()).thenReturn(Optional.empty());
+        when(config.sslKeyPassword()).thenReturn(Optional.empty());
+        when(config.sslEndpointIdentificationAlgorithm()).thenReturn(Optional.empty());
+
+        LegalArchivingKafkaPropertiesProvider provider = new LegalArchivingKafkaPropertiesProvider(config);
+
+        assertThrows(IllegalStateException.class, provider::overrideProperties);
     }
 }
